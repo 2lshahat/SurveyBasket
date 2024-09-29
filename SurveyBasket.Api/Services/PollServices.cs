@@ -1,6 +1,6 @@
 ﻿
 using SurveyBasket.Api.Controllers;
-using SurveyBasket.Api.Models;
+
 
 namespace SurveyBasket.Api.Services;
 
@@ -12,7 +12,8 @@ public class PollServices : IPollServices
         new Poll{
             Id = 1,
             Title = "poll 1",
-             Description = "this is description of poll"
+             Description = "this is description of poll",
+           
 
         }
 

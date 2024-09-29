@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
+
 using SurveyBasket.Api.Models;
 
 
@@ -7,20 +8,36 @@ namespace SurveyBasket.Api.Controllers;
 [ApiController]
 
 
-public class Polls(IPollServices pollServices) : ControllerBase
+public class PollsController(IPollServices pollServices) : ControllerBase
 {
     private readonly IPollServices _pollServices = pollServices;
 
 
     [HttpGet("")]
-    public IActionResult GetAll() => Ok(_pollServices);
+    public IActionResult GetAll()
+    { 
+       var Polls = _pollServices.GetAll();
+       var MappedPolls= Polls.Adapt<PollResponse>();
+
+
+        return Ok(MappedPolls);
+    }
+
+
 
     [HttpGet("{id}")]
-    public IActionResult Get(int id)
+    public IActionResult Get([FromRoute]int id)
     {
        var CurrentPoll= _pollServices.Get(id);
-        return CurrentPoll == null ? NotFound() : Ok(CurrentPoll);
+        var response = CurrentPoll.Adapt<PollResponse>();
+
+
+
+        return CurrentPoll == null ? NotFound() : Ok(response);
     }
+
+
+
 
     [HttpPut("{id}")]
     public IActionResult Update(int id,Poll poll)
@@ -44,9 +61,10 @@ public class Polls(IPollServices pollServices) : ControllerBase
     }
 
     [HttpPost("")]
-    public IActionResult Add(Poll request) { 
+    public IActionResult Add(PollRequest request) { 
+        var MappedRequest = request.Adapt<Poll>();
         
-        var newPoll = _pollServices.Add(request);
+        var newPoll = _pollServices.Add(MappedRequest);
 
         return CreatedAtAction(nameof(Get), new { id = newPoll.Id }, newPoll);
 

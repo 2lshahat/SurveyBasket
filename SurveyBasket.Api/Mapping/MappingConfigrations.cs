@@ -9,7 +9,7 @@ public class MappingConfigrations : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<PollRequest, PollResponse>().TwoWays();
-        config.NewConfig<Poll, PollResponse>().Map(dest => dest.Description, src => src.Description).TwoWays();
+        config.NewConfig<Poll, PollResponse>().Map(dest => dest.Summary, src => src.Summary).TwoWays();
                 
         
     }

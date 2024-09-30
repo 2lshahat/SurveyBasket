@@ -1,8 +1,4 @@
 ﻿
-
-using SurveyBasket.Api.Models;
-
-
 namespace SurveyBasket.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
@@ -13,22 +9,26 @@ public class PollsController(IPollServices pollServices) : ControllerBase
     private readonly IPollServices _pollServices = pollServices;
 
 
+    #region Get All Polls
+
     [HttpGet("")]
-    public IActionResult GetAll()
-    { 
-       var Polls = _pollServices.GetAll();
-       var MappedPolls= Polls.Adapt<PollResponse>();
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    {
+        var Polls = await _pollServices.GetAllAsync(cancellationToken);
+        var MappedPolls = Polls.Adapt<IEnumerable<PollResponse>>();
 
 
         return Ok(MappedPolls);
     }
+    #endregion
 
 
 
+    #region Get Poll By Id
     [HttpGet("{id}")]
-    public IActionResult Get([FromRoute]int id)
+    public async Task<IActionResult> Get([FromRoute] int id, CancellationToken cancellationToken)
     {
-       var CurrentPoll= _pollServices.Get(id);
+        var CurrentPoll = await _pollServices.GetAsync(id, cancellationToken);
         var response = CurrentPoll.Adapt<PollResponse>();
 
 
@@ -36,40 +36,60 @@ public class PollsController(IPollServices pollServices) : ControllerBase
         return CurrentPoll == null ? NotFound() : Ok(response);
     }
 
+    #endregion
 
 
 
+    #region Update Poll by Id
     [HttpPut("{id}")]
-    public IActionResult Update(int id,Poll poll)
+    public async Task<IActionResult> Update(int id, PollRequest request, CancellationToken cancellationToken)
     {
-        var IsUpdated = _pollServices.Update(id, poll);
+        var IsUpdated = await _pollServices.UpdateAsync(id, request.Adapt<Poll>(), cancellationToken);
         if (!IsUpdated)
             return NotFound();
         return NoContent();
     }
+    #endregion
 
 
+    #region Delete poll by Id
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id) {
-        var IsDeleted = _pollServices.Delete(id);
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        var IsDeleted = await _pollServices.DeleteAsync(id, cancellationToken);
         if (!IsDeleted)
             return NotFound();
         return NoContent();
 
 
-
     }
+    #endregion
 
+
+    #region Add or Create New Poll
     [HttpPost("")]
-    public IActionResult Add(PollRequest request) { 
+    public async Task<IActionResult> Add(PollRequest request, CancellationToken cancellationToken)
+    {
         var MappedRequest = request.Adapt<Poll>();
-        
-        var newPoll = _pollServices.Add(MappedRequest);
+
+        var newPoll = await _pollServices.AddAsync(MappedRequest, cancellationToken);
 
         return CreatedAtAction(nameof(Get), new { id = newPoll.Id }, newPoll);
 
     }
+    #endregion
+
+    #region Toggle Publish statue
+
+    [HttpPut("{id}/togglePublish")]
+    public async Task<IActionResult> TogglePublish([FromRoute] int id, CancellationToken cancellationToken)
+    {
+        var IsUpdated = await _pollServices.TogglePublishStatueAsync(id, cancellationToken);
+        if (!IsUpdated)
+            return NotFound();
+        return NoContent();
 
 
-
+    } 
+    #endregion
 }
